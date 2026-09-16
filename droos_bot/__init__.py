@@ -11,48 +11,49 @@ from telegram.ext import Application, ApplicationBuilder, Defaults, PicklePersis
 from droos_bot.gsheet.spreadsheet import Spreadsheet
 from droos_bot.utils.telegram import handle_restart, setup_scoped_commands
 
-# paths
+
+# Paths
 WORK_DIR = Path(__package__ or "droos_bot")
 PARENT_DIR = WORK_DIR.parent
 
-# bot config
-CONFIG = json.loads((PARENT_DIR / "config.json").read_text(encoding="utf-8"))
+
+# Bot config
+CONFIG = json.loads(
+    (PARENT_DIR / "config.json").read_text(encoding="utf-8")
+)
+
 BOT_TOKEN = CONFIG["tg_bot_token"]
 TG_BOT_ADMINS = CONFIG["tg_bot_admins"]
+
 DATA_COLUMNS: dict[str, str] = CONFIG["data_columns"]
+
 LECTURE_COMPONENTS: dict[str, str] = CONFIG.get(
     "lecture_components",
     {
-        "book": "📕 الكتاب",
-        "main": "📝 المحاور",
-        "video": "🎞 فيديو",
-        "voice": "🎧 صوتي",
-        "text": "📄 تفريغ",
-        "summary": "📎 ملخص",
+        "book": "📘 الكتاب",
+        "main": "📄 الملف",
+        "video": "🎥 الفيديو",
+        "voice": "🎧 الصوت",
+        "text": "📝 النص",
+        "summary": "📌 الملخص",
     },
 )
 
+
 # Logging
-log_file_path = PARENT_DIR / "last_run.log"
 logging_config = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "detailed": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s [%(module)s.%(funcName)s:%(lineno)d]: %(message)s",
+            "format": (
+                "%(asctime)s [%(levelname)s] %(name)s "
+                "[%(module)s.%(funcName)s:%(lineno)d]: %(message)s"
+            ),
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
     "handlers": {
-        "file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "level": "INFO",
-            "formatter": "detailed",
-            "filename": log_file_path,
-            "when": "midnight",
-            "interval": 1,
-            "backupCount": 7,
-        },
         "console": {
             "class": "logging.StreamHandler",
             "level": "INFO",
@@ -60,20 +61,23 @@ logging_config = {
             "stream": "ext://sys.stdout",
         },
     },
-    "loggers": {
-        "": {  # root logger
-            "handlers": ["file", "console"],
-            "level": "INFO",
-            "propagate": True,
-        },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
     },
 }
+
 logging.config.dictConfig(logging_config)
 
-# bot
-persistence = PicklePersistence(filepath=f"{PARENT_DIR}/bot.pickle")
+
+# Bot
+persistence = PicklePersistence(
+    filepath=PARENT_DIR / "bot.pickle"
+)
+
 defaults = Defaults(
-    parse_mode=ParseMode.HTML, link_preview_options=LinkPreviewOptions(is_disabled=True)
+    parse_mode=ParseMode.HTML,
+    link_preview_options=LinkPreviewOptions(is_disabled=True),
 )
 
 
@@ -90,6 +94,8 @@ application = (
     .post_init(post_init)
     .build()
 )
+
+
 sheet = Spreadsheet(
     f"{PARENT_DIR}/service_account.json",
     CONFIG["sheet_id"],
@@ -97,5 +103,6 @@ sheet = Spreadsheet(
     DATA_COLUMNS,
     LECTURE_COMPONENTS,
 )
+
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
