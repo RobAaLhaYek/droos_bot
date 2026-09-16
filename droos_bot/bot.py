@@ -10,7 +10,7 @@ from droos_bot.utils.modules_loader import load_modules
 def main() -> None:
     """Run bot."""
     application.bot_data["loaded_modules"] = load_modules(
-        ALL_MODULES, package or "droos_bot"
+        ALL_MODULES, "droos_bot"
     )
 
     port = int(os.environ.get("PORT", "10000"))
